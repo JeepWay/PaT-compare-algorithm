@@ -1,6 +1,7 @@
 from typing import Union
 from stable_baselines3.common.type_aliases import Schedule
 import torch.nn as nn
+import torch as th
 
 def get_schedule_fn(initial_value: Union[float, str]) -> Schedule:
     """
@@ -36,3 +37,23 @@ class AddBias(nn.Module):
             bias = self._bias.t().view(1, -1, 1, 1)
 
         return x + bias
+    
+    
+def blockwise_eigh(matrix, block_size, epsilon, device):
+    n = matrix.shape[0]
+    eigenvalues_list = []
+    eigenvectors_list = []
+
+    for i in range(0, n, block_size):
+        block = matrix[i : i+block_size, i : i+block_size]
+        block_size_actual = block.shape[0]
+
+        d, Q = th.linalg.eigh(block + epsilon * th.eye(block_size_actual, device=device))
+
+        eigenvalues_list.append(d)
+        eigenvectors_list.append(Q)
+
+    eigenvalues = th.cat(eigenvalues_list)
+    eigenvectors = th.block_diag(*eigenvectors_list)
+
+    return eigenvalues, eigenvectors

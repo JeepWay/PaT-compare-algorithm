@@ -4,13 +4,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-from zhao_2d.common.utils import AddBias
+from zhao_2d.common.utils import AddBias, blockwise_eigh
 
 # TODO: In order to make this code faster:
 # 1) Implement _extract_patches as a single cuda kernel
 # 2) Compute QR decomposition in a separate process
 # 3) Actually make a general KFAC optimizer so it fits PyTorch
-
 
 def _extract_patches(x, kernel_size, stride, padding):
     if padding[0] + padding[1] > 0:
@@ -210,10 +209,26 @@ class KFACOptimizer(optim.Optimizer):
                 # My asynchronous implementation exists, I will add it later.
                 # Experimenting with different ways to this in PyTorch.
 
-                self.d_g[m], self.Q_g[m] = torch.linalg.eigh(
-                    self.m_gg[m])
-                self.d_a[m], self.Q_a[m] = torch.linalg.eigh(
-                    self.m_aa[m])
+                block_size = 64* 4
+                epsilon_gg = torch.max(self.m_gg[m].abs()) * 1e-6
+                epsilon_aa = torch.max(self.m_aa[m].abs()) * 1e-6
+                self.d_g[m], self.Q_g[m] = blockwise_eigh(
+                    self.m_gg[m],
+                    block_size=block_size,
+                    epsilon=epsilon_gg,
+                    device=self.m_gg[m].device
+                )
+                self.d_a[m], self.Q_a[m] = blockwise_eigh(
+                    self.m_aa[m],
+                    block_size=block_size,
+                    epsilon=epsilon_aa,
+                    device=self.m_aa[m].device
+                )
+
+                # self.d_g[m], self.Q_g[m] = torch.linalg.eigh(
+                #     self.m_gg[m])
+                # self.d_a[m], self.Q_a[m] = torch.linalg.eigh(
+                #     self.m_aa[m])
 
                 self.d_a[m].mul_((self.d_a[m] > 1e-6).float())
                 self.d_g[m].mul_((self.d_g[m] > 1e-6).float())
