@@ -5,6 +5,7 @@ import numpy as np
 import torch as th
 from gymnasium import spaces
 from torch.nn import functional as F
+th.backends.cuda.preferred_linalg_library("magma")
 
 # from stable_baselines3.common.buffers import RolloutBuffer
 # from stable_baselines3.common.on_policy_algorithm import OnPolicyAlgorithm
@@ -133,16 +134,21 @@ class ACKTR(OnPolicyAlgorithm):
             actions = rollout_data.actions.long().flatten()
 
         values, log_prob, entropy, invalid_probs = self.policy.evaluate_actions(rollout_data.observations, actions)
-        values = values.flatten()
-        advantages = rollout_data.returns - values 
 
-        value_loss = advantages.pow(2).mean()   
+        values = values.view(self.n_steps, self.env.num_envs, 1)        
+        log_prob = log_prob.view(self.n_steps, self.env.num_envs, 1)    
+        
+        advantages = rollout_data.returns.view(self.n_steps, self.env.num_envs, 1) - values
+        value_loss = advantages.pow(2).mean() 
         action_loss = -(advantages.detach() * log_prob).mean()
-        entropy_loss = th.mean(entropy)
-        pred_mask = self.policy.predict_masks(rollout_data.observations)
-        truth_mask = rollout_data.truth_masks
-        mask_loss = self.loss_func(pred_mask, truth_mask).mean() 
-        invalid_probs_loss = th.mean(invalid_probs)
+        
+        mask_len = self.action_space.n
+        pred_mask = self.policy.predict_masks(rollout_data.observations).reshape((self.n_steps, self.env.num_envs, mask_len))
+        truth_mask = rollout_data.truth_masks.reshape(self.n_steps, self.env.num_envs, mask_len)   
+        mask_loss = self.loss_func(pred_mask, truth_mask).mean()
+        
+        entropy_loss = entropy.mean() 
+        invalid_probs_loss = invalid_probs.mean()  
 
         if self.acktr and self.policy.optimizer.steps % self.policy.optimizer.Ts == 0:
             # Sampled fisher, see Martens 2014

@@ -29,7 +29,7 @@ policy_kwargs: &id001
     entropy_strategy: naive
     invalid_probs_strategy: naive
   mask_type: predict
-  ortho_init: false # must be false due to torch.linalg.eigh of kfac
+  ortho_init: true
 ACKTR_kwargs:
   policy: CnnMlpPolicy
   learning_rate: 0.001
@@ -42,7 +42,7 @@ ACKTR_kwargs:
   policy_kwargs: *id001
   verbose: 1
   seed: 0
-  device: cpu # use cuda will cause error in kfac
+  device: auto
   add_mask_loss: true
   mask_coef: 0.5
   add_entropy_loss: true
