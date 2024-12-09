@@ -75,8 +75,8 @@ class RolloutBuffer(BaseBuffer):
         self.log_probs = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
         self.advantages = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
         self.generator_ready = False
-        self.truth_masks = np.zeros((self.buffer_size, self.n_envs, self.action_dim), dtype=np.float32)
-        self.pred_masks = np.zeros((self.buffer_size, self.n_envs, self.action_dim), dtype=np.float32)
+        self.truth_masks = np.zeros((self.buffer_size, self.n_envs, self.action_space.n), dtype=np.float32)
+        self.pred_masks = np.zeros((self.buffer_size, self.n_envs, self.action_space.n), dtype=np.float32)
         super().reset()
 
     def compute_returns_and_advantage(self, last_values: th.Tensor, dones: np.ndarray) -> None:
