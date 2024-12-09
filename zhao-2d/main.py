@@ -39,6 +39,9 @@ def train(config: Dict[str, Any]):
         env_kwargs=config["env_kwargs"],
     )
     model = ACKTR(env=vec_env, **config["ACKTR_kwargs"], tensorboard_log=config['save_path'])
+    with open(os.path.join(config['save_path'], "model.txt"), "w") as f:
+        f.write(f"ACKTR's network architecture: \n{str(model.policy)}\n")
+        f.write(f"\nACKTR's number of parameters: {sum(p.numel() for p in model.policy.parameters())}\n")
     model.learn(
         total_timesteps=config["total_timesteps"], 
         progress_bar=True, 
@@ -112,7 +115,7 @@ if __name__ == "__main__":
     if args.mode == "both":
         config['test_dir'] = config['save_path']
     elif args.mode == "test":
-        config['test_dir'] = f"logs/acktr/{args.test_dir}"
+        config['test_dir'] = f"{config['log_dir']}/{args.test_dir}"
 
     if args.mode == "both" or args.mode == "train":
         os.makedirs(config['save_path'], exist_ok=True)
