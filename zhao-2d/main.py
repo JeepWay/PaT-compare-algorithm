@@ -52,7 +52,7 @@ def train(config: Dict[str, Any]):
     )
     print(f"Training finished. Model saved at {config['save_path']}")
     model.save(os.path.join(config['save_path'], config["env_id"]))
-    run.finish()
+    # run.finish()
     print(f"\n{'-' * 30}   Complete Training   {'-' * 30}\n")
 
 
