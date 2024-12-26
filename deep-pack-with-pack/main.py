@@ -92,10 +92,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="2D BPP with Deep-Pack")
     parser.add_argument('--config_path', default="settings/v1_deeppack_mask_DDQN-h200-rC.yaml", type=str, help="Path to the configuration file with .yaml extension.")
     parser.add_argument('--mode', default="both", type=str, choices=["train", "test", "both"], help="Mode to train or test or both of them.")
-    parser.add_argument('--test_dir', default=None, type=str, help="Path to the directory where the model is saved for testing.")
     args = parser.parse_args()
-    if args.mode == "test" and args.test_dir is None:
-        raise ValueError("Please specify the directory to test when using the test mode.")
     if not args.config_path.endswith(".yaml"):
         raise ValueError("Please specify the path to the configuration file with a .yaml extension.")
 
@@ -113,7 +110,7 @@ if __name__ == "__main__":
     if args.mode == "both":
         config['test_dir'] = config['save_path']
     elif args.mode == "test":
-        config['test_dir'] = f"{config['log_dir']}/{args.test_dir}"
+        config['test_dir'] = config['save_path']
 
     if args.mode == "both" or args.mode == "train":
         os.makedirs(config['save_path'], exist_ok=True)
