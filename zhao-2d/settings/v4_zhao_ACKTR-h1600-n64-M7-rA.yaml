@@ -8,7 +8,8 @@ log_dir: logs/acktr
 env_kwargs:
   render_mode: human
   bin_channels: 3
-  items_per_bin: 25
+  min_items_per_bin: 20
+  max_items_per_bin: 30
   area_reward_coef: 0.4
   constant_penalty: -5.0
   action_fail: continue
@@ -28,7 +29,7 @@ policy_kwargs: &id001
     update_actor_stratrgy: masked
     entropy_strategy: naive
     invalid_probs_strategy: naive
-  mask_type: predict
+  mask_type: truth
   ortho_init: true
 ACKTR_kwargs:
   policy: CnnMlpPolicy
