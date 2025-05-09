@@ -5,16 +5,16 @@ eval_seed: 10
 total_timesteps: 3000000
 n_eval_episodes: 50
 n_eval_seeds: 20
-log_dir: logs/ddqn
+log_dir: logs/acktr
 env_kwargs:
   render_mode: human
-  bin_channels: 1
+  bin_channels: 3
   min_items_per_bin: 10
   max_items_per_bin: 20
   area_reward_coef: 0.4
   constant_penalty: -5.0
   action_fail: continue
-  reward_type: compactness
+  reward_type: area
 monitor_kwargs:
   info_keywords: !!python/tuple
   - PE
@@ -23,12 +23,32 @@ policy_kwargs: &id001
   network: CnnMlpNetwork1
   network_kwargs:
     hidden_dim: 200
-DDQN_kwargs:
+  dist_kwargs:
+    mask_strategy: minus
+    mask_minus_coef: 7
+    mask_replace_coef: -7
+    update_actor_stratrgy: masked
+    entropy_strategy: naive
+    invalid_probs_strategy: naive
+  mask_type: truth
+  ortho_init: true
+ACKTR_kwargs:
   policy: CnnMlpPolicy
-  buffer_size: 500000
   learning_rate: 0.001
+  n_steps: 64
+  gamma: 0.99
+  gae_lambda: 0.98
+  vf_coef: 0.5
+  max_grad_norm: 5
   stats_window_size: 100
   policy_kwargs: *id001
   verbose: 1
   seed: 0
   device: auto
+  add_mask_loss: true
+  mask_coef: 0.5
+  add_entropy_loss: true
+  ent_coef: 0.01
+  add_invalid_probs: true
+  invalid_probs_coef: 0.01
+  acktr: true
