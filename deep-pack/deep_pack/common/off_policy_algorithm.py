@@ -23,6 +23,7 @@ from stable_baselines3.her.her_replay_buffer import HerReplayBuffer
 
 from deep_pack.common.buffers import DictReplayBuffer, ReplayBuffer
 from deep_pack.common.constants import BIN, MASK, PE
+from deep_pack.common.callbacks import MetricsCallback
 
 SelfOffPolicyAlgorithm = TypeVar("SelfOffPolicyAlgorithm", bound="OffPolicyAlgorithm")
 
@@ -425,14 +426,14 @@ class OffPolicyAlgorithm(BaseAlgorithm):
             self.logger.record("rollout/ep_PE_mean", safe_mean([ep_info[PE] for ep_info in self.ep_info_buffer]))
         # self.logger.record("time/fps", fps)
         # self.logger.record("time/time_elapsed", int(time_elapsed), exclude="tensorboard")
-        # self.logger.record("time/total_timesteps", self.num_timesteps, exclude="tensorboard")
+        self.logger.record("time/total_timesteps", self.num_timesteps, exclude="tensorboard")
         if self.use_sde:
             self.logger.record("train/std", (self.actor.get_std()).mean().item())
 
         if len(self.ep_success_buffer) > 0:
             self.logger.record("rollout/success_rate", safe_mean(self.ep_success_buffer))
         # Pass the number of timesteps for tensorboard
-        self.logger.dump(step=self.num_timesteps)
+        # self.logger.dump(step=self.num_timesteps)     # MetricsCallback() will dump the logs
 
     def _on_step(self) -> None:
         """
@@ -600,6 +601,11 @@ class OffPolicyAlgorithm(BaseAlgorithm):
                     # Log training infos
                     if log_interval is not None and self._episode_num % log_interval == 0:
                         self._dump_logs()
+                        metrics_callback = callback.callbacks[0].callbacks[0]
+                        assert isinstance(metrics_callback, MetricsCallback)
+                        metrics_callback.on_update_end()
+                        self.logger.dump(step=self.num_timesteps)
+
         callback.on_rollout_end()
 
         return RolloutReturn(num_collected_steps * env.num_envs, num_collected_episodes, continue_training)

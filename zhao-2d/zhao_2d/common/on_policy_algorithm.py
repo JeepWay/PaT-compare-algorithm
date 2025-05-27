@@ -19,6 +19,7 @@ from zhao_2d.common.buffers import RolloutBuffer, DictRolloutBuffer
 from zhao_2d.common.policies import CustomActorCriticPolicy
 from zhao_2d.common.constants import BIN, MASK, PE
 from zhao_2d.common.base_class import BaseAlgorithm
+from zhao_2d.common.callbacks import MetricsCallback
 
 SelfOnPolicyAlgorithm = TypeVar("SelfOnPolicyAlgorithm", bound="OnPolicyAlgorithm")
 
@@ -303,7 +304,7 @@ class OnPolicyAlgorithm(BaseAlgorithm):
         # self.logger.record("time/total_timesteps", self.num_timesteps, exclude="tensorboard")
         if len(self.ep_success_buffer) > 0:
             self.logger.record("rollout/success_rate", safe_mean(self.ep_success_buffer))
-        self.logger.dump(step=self.num_timesteps)
+        # self.logger.dump(step=self.num_timesteps)     # MetricsCallback() will dump the logs
 
     def learn(
         self: SelfOnPolicyAlgorithm,
@@ -343,6 +344,10 @@ class OnPolicyAlgorithm(BaseAlgorithm):
                 self._dump_logs(iteration)
 
             self.train()
+            metrics_callback = callback.callbacks[0].callbacks[0]
+            assert isinstance(metrics_callback, MetricsCallback)
+            metrics_callback.on_update_end()
+            self.logger.dump(step=self.num_timesteps)
 
         callback.on_training_end()
 
