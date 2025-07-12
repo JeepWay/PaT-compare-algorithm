@@ -24,13 +24,13 @@ from zhao_2d.common.callbacks import MetricsCallback
 
 def train(config: Dict[str, Any]):
     print(f"\n{'-' * 30}   Start Training   {'-' * 30}\n")
-    run = wandb.init(
-        project=config["env_id"],
-        name=config['save_path'].split("2DBpp-")[1],
-        config=config,
-        sync_tensorboard=True,  # auto-upload sb3's tensorboard metrics
-        resume = None,
-    )
+    # run = wandb.init(
+    #     project=config["env_id"],
+    #     name=config['save_path'].split("2DBpp-")[1],
+    #     config=config,
+    #     sync_tensorboard=True,  # auto-upload sb3's tensorboard metrics
+    #     resume = None,
+    # )
     vec_env = make_vec_env(
         config["env_id"], 
         n_envs=config["n_envs"], 
@@ -47,7 +47,7 @@ def train(config: Dict[str, Any]):
         progress_bar=True, 
         callback=CallbackList([
             MetricsCallback(config['save_path']),
-            WandbCallback(verbose=config['ACKTR_kwargs']['verbose']),
+            # WandbCallback(verbose=config['ACKTR_kwargs']['verbose']),
         ])
     )
     print(f"Training finished. Model saved at {config['save_path']}")
