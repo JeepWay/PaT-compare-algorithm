@@ -92,7 +92,7 @@ def test(config: Dict[str, Any]):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="2D BPP with ACKTR")
-    parser.add_argument('--config_path', default="settings/v1_zhao_ACKTR-h200-n64-M7-rA.yaml", type=str, help="Path to the configuration file with .yaml extension.")
+    parser.add_argument('--config_path', default="settings/v1_zhao_ACKTR-h200-n64-M7-rA-P.yaml", type=str, help="Path to the configuration file with .yaml extension.")
     parser.add_argument('--mode', default="both", type=str, choices=["train", "test", "both"], help="Mode to train or test or both of them.")
     args = parser.parse_args()
     if not args.config_path.endswith(".yaml"):
