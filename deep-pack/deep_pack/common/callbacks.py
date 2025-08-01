@@ -26,7 +26,7 @@ class MetricsCallback(BaseCallback):
         self.metrics_logger = csv.DictWriter(self.file_handler, fieldnames=(
             "timesteps",
             "ep_rew_mean",
-            "ep_PE_mean",
+            "ep_SU_mean",
             "exploration_rate",
             "loss",
             "n_updates",
@@ -45,7 +45,7 @@ class MetricsCallback(BaseCallback):
         metrics = {
             "timesteps": self.model.num_timesteps,
             "ep_rew_mean": self.logger.name_to_value['rollout/ep_rew_mean'], 
-            "ep_PE_mean": self.logger.name_to_value['rollout/ep_PE_mean'], 
+            "ep_SU_mean": self.logger.name_to_value['rollout/ep_SU_mean'], 
             "exploration_rate": self.logger.name_to_value['rollout/exploration_rate'],
             "loss": self.logger.name_to_value['train/loss'], 
             "n_updates": self.logger.name_to_value['train/n_updates'],

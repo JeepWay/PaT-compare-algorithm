@@ -44,7 +44,7 @@ class BppEnv(gym.Env):
         self.observation_space = spaces.Dict({
             MASK: spaces.Box(low=0, high=1, shape=(bin_w*bin_h,), dtype=np.uint8),
             BIN: spaces.Box(low=0, high=max(bin_w, bin_h), 
-                              shape=(self.bin_channels, bin_w, 2 * bin_h), dtype=np.uint8),                        
+                              shape=(self.bin_channels, bin_w, bin_h), dtype=np.uint8),                        
         })
         self.bin = Bin(width=bin_w, height=bin_h)
         self.items_creator = ItemsCreator(
@@ -118,7 +118,7 @@ class BppEnv(gym.Env):
             self.items_creator._add_unit_item() # ensure next state is able to be observed
 
         truncated = False
-        info = {'bin': self._get_bin(), 'PE': self._get_bin_PE(), 'next_item': self._get_next_item(), 'mask': self._get_mask_obs()}
+        info = {'bin': self._get_bin(), 'SU': self._get_bin_SU(), 'next_item': self._get_next_item(), 'mask': self._get_mask_obs()}
         return self._get_obs(), reward, terminated, truncated, info
 
     def reset(
@@ -175,16 +175,16 @@ class BppEnv(gym.Env):
         """
         return self.bin.get_bin()
 
-    def _get_bin_PE(self) -> float:
+    def _get_bin_SU(self) -> float:
         """
-        Return the packing efficiency of the `bin`.
+        Return the space utilization of the `bin`.
         
         Returns
         -------
         out: float
-            The packing efficiency of the `bin`.
+            The space utilization of the `bin`.
         """
-        return self.bin.get_bin_PE()
+        return self.bin.get_bin_SU()
 
     def _get_next_item(self) -> Tuple[int, int]:
         """
@@ -211,7 +211,7 @@ class BppEnv(gym.Env):
         """
         item_width, item_height = self._get_next_item()
         return (item_width * item_height)
-
+    
     def _get_obs(self) -> Dict[str, np.ndarray]:
         """
         Return the observation of the environment.
@@ -241,12 +241,11 @@ class BppEnv(gym.Env):
         """
         bin_channel = self.bin.get_bin()
         item_width, item_height = self._get_next_item()
-        item_channel = np.ones((self.bin_w, self.bin_h), dtype=np.uint8)
-        item_channel[0:item_width, 0:item_height] = 0
-        bin_obs = np.concatenate((bin_channel, item_channel), axis=1)
-        bin_obs = np.expand_dims(bin_obs, axis=0) 
+        width_channel = np.full((self.bin_w, self.bin_h), item_width, dtype=np.uint8)
+        height_channel = np.full((self.bin_w, self.bin_h), item_height, dtype=np.uint8)
+        bin_obs = np.stack([bin_channel, width_channel, height_channel], axis=0)
         return bin_obs
-    
+
     def _get_mask_obs(self) -> np.ndarray:
         """
         Return the observation of the action mask based on the current `bin` and the next item.
