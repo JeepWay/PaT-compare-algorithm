@@ -17,6 +17,6 @@ env_kwargs:
   reward_type: area
 monitor_kwargs:
   info_keywords: !!python/tuple
-  - PE
+  - SU
 shelf_fit_kwargs:
   method: first_fit
